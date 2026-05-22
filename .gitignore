@@ -1,0 +1,18 @@
+# Python 虚拟环境
+.venv/
+venv/
+
+# PyInstaller 打包产物
+dist/
+build/
+*.spec
+*.exe
+
+# 系统垃圾文件
+.DS_Store
+Thumbs.db
+*.log
+
+# 数据库目录（不上传真实数据）
+MYSQL_DB/
+ROOT/

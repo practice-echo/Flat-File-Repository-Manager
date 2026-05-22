@@ -1,0 +1,38 @@
+USE private_repo;
+
+-- 工具流表（不变）
+CREATE TABLE flow (
+    flow_id         INT PRIMARY KEY AUTO_INCREMENT,
+    flow_name       VARCHAR(100) NOT NULL,
+    parent_flow_id  INT NULL,
+    flow_type       VARCHAR(50),
+    flow_desc       TEXT,
+    flow_tags       VARCHAR(200),
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_flow_name_parent (flow_name, parent_flow_id),
+    INDEX idx_parent (parent_flow_id),
+    FOREIGN KEY (parent_flow_id) REFERENCES flow(flow_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 文件表（修改唯一约束为组合约束）
+CREATE TABLE point (
+    point_id    INT PRIMARY KEY AUTO_INCREMENT,
+    flow_id     INT NOT NULL,
+    file_name   VARCHAR(255) NOT NULL,
+    file_suffix VARCHAR(30),
+    file_size   BIGINT,
+    file_hash   CHAR(64) NOT NULL,
+    point_note  VARCHAR(200),
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_file_flow (file_name, flow_id),   -- 关键修改：改为组合唯一
+    INDEX idx_flow (flow_id),
+    INDEX idx_suffix (file_suffix),
+    FOREIGN KEY (flow_id) REFERENCES flow(flow_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 插入根节点
+INSERT INTO flow (flow_name, parent_flow_id, flow_type, flow_desc, flow_tags)
+SELECT 'ROOT', NULL, '根节点', '物理仓库 D:\ROOT 的总入口', '系统,总根'
+WHERE NOT EXISTS (SELECT 1 FROM flow WHERE flow_name='ROOT' AND parent_flow_id IS NULL);
